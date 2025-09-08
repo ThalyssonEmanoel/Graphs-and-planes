@@ -5,7 +5,6 @@ import heapq
 from collections import deque
 import math
 
-# Função para calcular distância entre dois pontos (Haversine)
 def haversine_distance(lat1, lon1, lat2, lon2):
     R = 6371  
     dlat = math.radians(lat2 - lat1)
@@ -31,8 +30,58 @@ def bfs_search(graph, start, goal):
                     queue.append((neighbor, path + [neighbor]))
     return None
 
-# Algoritmo DFS
+# Algoritmo DFS https://www.geeksforgeeks.org/python/python-program-for-depth-first-search-or-dfs-for-a-graph/
+def dfs_search(graph, start, goal):
+    stack = [(start, [start])]
+    visited = set()
+    while stack:
+        current, path = stack.pop()
+        if current in visited:
+            continue
+        visited.add(current)
+        if current == goal:
+            return path
+        if current in graph:
+            for neighbor in reversed(graph.get(current, [])):
+                if neighbor not in visited:
+                    stack.append((neighbor, path + [neighbor]))
+    return None
 
+# Algoritmo Dijkstra https://www.dio.me/articles/o-algoritmo-de-dijkstra-em-python-encontrando-o-caminho-mais-curto
+def dijkstra_search(graph, start, goal):
+    distances = {node: float('infinity') for node in graph}
+    distances[start] = 0
+    pq = [(0, start)]
+    previous_nodes = {node: None for node in graph}
+    
+    while pq:
+        current_distance, current_node = heapq.heappop(pq)
+        
+        if current_distance > distances[current_node]:
+            continue
+            
+        if current_node == goal:
+            path = []
+            while current_node is not None:
+                path.append(current_node)
+                current_node = previous_nodes[current_node]
+            return path[::-1]
+
+        if current_node in graph:
+            for neighbor in graph[current_node]:
+                distance = 1 
+                new_dist = current_distance + distance
+                
+                if new_dist < distances.get(neighbor, float('infinity')):
+                    distances[neighbor] = new_dist
+                    previous_nodes[neighbor] = current_node
+                    heapq.heappush(pq, (new_dist, neighbor))
+    return None
+
+# Algoritmo A* visualizar : https://github.com/malufreitas/a-estrela
+#.
+#.
+#.
 @st.cache_data
 def load_data():
     airportsDat = './data/airports.dat'
@@ -146,7 +195,7 @@ if st.session_state.path:
         data=dfAirports.reset_index(),
         get_position=["Longitude", "Latitude"],
         get_color="[200, 30, 0, 160]",
-        get_radius=15000,
+        get_radius=10000,
         pickable=True,
     )
     
