@@ -79,9 +79,44 @@ def dijkstra_search(graph, start, goal):
     return None
 
 # Algoritmo A* visualizar : https://github.com/malufreitas/a-estrela
-#.
-#.
-#.
+def astar_search(graph, start, goal, airports_df):
+    open_set = [(0, start)]
+    came_from = {}
+    g_score = {node: float('inf') for node in graph}
+    g_score[start] = 0
+    
+    start_coords = airports_df.loc[start]
+    goal_coords = airports_df.loc[goal]
+
+    f_score = {node: float('inf') for node in graph}
+    f_score[start] = haversine_distance(start_coords['Latitude'], start_coords['Longitude'], goal_coords['Latitude'], goal_coords['Longitude'])
+
+    while open_set:
+        _, current = heapq.heappop(open_set)
+
+        if current == goal:
+            path = []
+            while current in came_from:
+                path.append(current)
+                current = came_from[current]
+            path.append(start)
+            return path[::-1]
+
+        if current in graph:
+            for neighbor in graph[current]:
+                tentative_g_score = g_score[current] + 1
+                
+                if tentative_g_score < g_score.get(neighbor, float('inf')):
+                    came_from[neighbor] = current
+                    g_score[neighbor] = tentative_g_score
+                    
+                    neighbor_coords = airports_df.loc[neighbor]
+                    h_val = haversine_distance(neighbor_coords['Latitude'], neighbor_coords['Longitude'], goal_coords['Latitude'], goal_coords['Longitude'])
+                    f_score[neighbor] = tentative_g_score + h_val
+                    
+                    if not any(neighbor == i[1] for i in open_set):
+                        heapq.heappush(open_set, (f_score[neighbor], neighbor))
+    return None
 @st.cache_data
 def load_data():
     airportsDat = './data/airports.dat'
